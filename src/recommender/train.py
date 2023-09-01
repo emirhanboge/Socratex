@@ -98,7 +98,7 @@ def train_model(
     Returns:
         The trained model.
     """
-    for epoch in range(10):
+    for epoch in range(50):
         model.train()
         for batch in train_loader:
             optimizer.zero_grad()
@@ -110,14 +110,25 @@ def train_model(
 
         model.eval()
         val_loss = 0
+        avg_bleu_score = 0.0
+
         with torch.no_grad():
-            for batch in val_loader:
-                inputs, labels = batch
+            for inputs, labels in val_loader:
                 outputs = model(inputs.long())
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
 
-        print(f"Epoch {epoch+1}, Train Loss: {loss.item()}, Val Loss: {val_loss/len(val_loader)}")
+                predicted = torch.argmax(outputs, dim=1).cpu().numpy()
+                reference = labels.cpu().numpy()
+
+                candidate = int_to_node_seq(predicted)
+                reference = int_to_node_seq(reference)
+
+                bleu_score = sentence_bleu([reference], candidate)
+                avg_bleu_score += bleu_score
+
+        avg_bleu_score /= len(val_loader)
+        print(f"Epoch {epoch+1}, Train Loss: {loss.item()}, Val Loss: {val_loss/len(val_loader)}, Val BLEU: {avg_bleu_score}")
 
     return model
 
@@ -173,7 +184,7 @@ if __name__ == '__main__':
     num_layers = 3
     dropout = 0.1
     max_len = 15
-    learning_rate = 0.001
+    learning_rate = 0.01
 
     model = Transformer(
         input_size=vocab_size,
