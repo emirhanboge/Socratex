@@ -53,21 +53,25 @@ def preferential_attachment(node1: str, node2: str, G: nx.Graph) -> int:
     return len(list(G.neighbors(node1))) * len(list(G.neighbors(node2)))
 
 
-def load_graph_from_yaml(filename: str) -> nx.Graph:
+def load_graph_from_yaml(filename: str, titlesfile: str) -> nx.Graph:
     """Load a graph from a YAML file.
 
     Args:
         filename: The name of the file to load the graph from.
+        titlesfile: The name of the file to load the titles from.
 
     Returns:
         The graph loaded from the YAML file.
     """
     with open(filename, "r") as file:
         graph_dict = yaml.safe_load(file)
+    with open(titlesfile, "r") as file:
+        titles_dict = yaml.safe_load(file)
+
     G = nx.Graph()
     for node, neighbors in graph_dict.items():
         for neighbor in neighbors:
-            G.add_edge(node, neighbor)
+            G.add_edge(titles_dict[node], titles_dict[neighbor])
     return G
 
 
@@ -92,15 +96,16 @@ def create_weighted_graph(G: nx.Graph) -> nx.Graph:
     return weighted_G
 
 
-def load_weighted_graph(filename: str) -> nx.Graph:
+def load_weighted_graph(filename: str, titlesfile: str) -> nx.Graph:
     """Load the graph, create weights.
 
     Args:
         filename: The name of the file to load the graph from.
+        titlesfile: The name of the file to load the titles from.
 
     Returns:
         The graph loaded from the YAML file.
     """
-    G = load_graph_from_yaml(filename)
+    G = load_graph_from_yaml(filename, titlesfile)
     weighted_G = create_weighted_graph(G)
     return weighted_G
