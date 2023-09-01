@@ -111,7 +111,6 @@ def train_model(
         model.eval()
         val_loss = 0
         avg_bleu_score = 0.0
-
         with torch.no_grad():
             for inputs, labels in val_loader:
                 outputs = model(inputs.long())

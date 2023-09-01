@@ -1,10 +1,12 @@
 from train import Transformer
 
-import torch
 import argparse
 import json
 import yaml
 from difflib import SequenceMatcher
+
+import torch
+import torch.nn.functional as F
 
 def int_to_node_seq(int_seq: list, int_to_node: dict) -> list:
     """
@@ -84,9 +86,9 @@ def get_recommendations(model: torch.nn.Module, input_sequence: torch.Tensor, n_
     """
     with torch.no_grad():
         output = model(input_sequence)
-        values, indices = torch.topk(output, n_recommendations + 1)
-
-    return indices.tolist()[0]
+        output = F.softmax(output, dim=-1)
+        predicted_indices = torch.multinomial(output, n_recommendations)
+    return predicted_indices.tolist()[0]
 
 def remove_duplicates(predicted_nodes: list, input_nodes: list) -> list:
     """
